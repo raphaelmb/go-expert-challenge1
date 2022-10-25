@@ -48,6 +48,7 @@ func CotacaoHandler(w http.ResponseWriter, r *http.Request) {
 
 func GetCotacao(url string) (*Cotacao, error) {
 	ctx := context.Background()
+	// Change context time
 	ctx, cancel := context.WithTimeout(ctx, time.Second)
 	defer cancel()
 
