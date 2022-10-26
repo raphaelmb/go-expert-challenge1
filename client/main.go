@@ -2,9 +2,9 @@ package main
 
 import (
 	"context"
-	"fmt"
 	"io"
 	"net/http"
+	"os"
 	"time"
 )
 
@@ -14,16 +14,16 @@ const (
 
 func main() {
 	c := GetCotacaoDolar(SERVER_URL)
-	fmt.Println(string(c))
+	CreateAndWriteFile(string(c))
 }
 
 func GetCotacaoDolar(url string) []byte {
 	ctx := context.Background()
 	// Change context time
-	ctx, cancel := context.WithTimeout(ctx, time.Millisecond*300)
+	ctx, cancel := context.WithTimeout(ctx, time.Second*10)
 	defer cancel()
 
-	req, err := http.NewRequestWithContext(ctx, "GET", url, nil)
+	req, err := http.NewRequestWithContext(ctx, http.MethodGet, url, nil)
 	if err != nil {
 		panic(err)
 	}
@@ -42,6 +42,15 @@ func GetCotacaoDolar(url string) []byte {
 	return body
 }
 
-// TODO: create file
-func CreateFile() {
+func CreateAndWriteFile(cotacao string) {
+	file, err := os.Create("cotacao.txt")
+	if err != nil {
+		panic(err)
+	}
+	defer file.Close()
+
+	_, err = file.Write([]byte("Dólar: " + cotacao))
+	if err != nil {
+		panic(err)
+	}
 }

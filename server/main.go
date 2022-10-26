@@ -2,10 +2,15 @@ package main
 
 import (
 	"context"
+	"database/sql"
 	"encoding/json"
 	"io"
 	"net/http"
+	"os"
+	"strconv"
 	"time"
+
+	_ "github.com/mattn/go-sqlite3"
 )
 
 const (
@@ -30,8 +35,21 @@ type Cotacao struct {
 }
 
 func main() {
+	prepareDb()
+	db, _ := sql.Open("sqlite3", "db.sqlite")
+	defer db.Close()
+
 	http.HandleFunc("/cotacao", CotacaoHandler)
 	http.ListenAndServe(PORT, nil)
+}
+
+func prepareDb() {
+	os.Remove("db.sqlite")
+	file, err := os.Create("db.sqlite")
+	if err != nil {
+		panic(err)
+	}
+	file.Close()
 }
 
 func CotacaoHandler(w http.ResponseWriter, r *http.Request) {
@@ -41,18 +59,23 @@ func CotacaoHandler(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
+	d, err := strconv.ParseFloat(c.USDBRL.Bid, 64)
+	if err != nil {
+		panic(err)
+	}
+
 	w.Header().Set("Content-Type", "application/json")
 	w.WriteHeader(http.StatusOK)
-	json.NewEncoder(w).Encode(c.USDBRL.Bid)
+	json.NewEncoder(w).Encode(d)
 }
 
 func GetCotacao(url string) (*Cotacao, error) {
 	ctx := context.Background()
 	// Change context time
-	ctx, cancel := context.WithTimeout(ctx, time.Second)
+	ctx, cancel := context.WithTimeout(ctx, time.Second*10)
 	defer cancel()
 
-	req, err := http.NewRequestWithContext(ctx, "GET", url, nil)
+	req, err := http.NewRequestWithContext(ctx, http.MethodGet, url, nil)
 	if err != nil {
 		return nil, err
 	}
@@ -78,4 +101,6 @@ func GetCotacao(url string) (*Cotacao, error) {
 }
 
 // TODO: save to database
-func SaveCotacao() {}
+// func SaveCotacao(db *sql.DB, cotacao *Cotacao) error {
+
+// }
