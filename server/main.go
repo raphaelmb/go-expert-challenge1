@@ -64,29 +64,32 @@ func prepareAndConnectDB() {
 }
 
 func CotacaoHandler(w http.ResponseWriter, r *http.Request) {
-	c, err := GetCotacao(API_URL)
-	if err != nil {
-		w.WriteHeader(http.StatusInternalServerError)
-		return
-	}
+	ctx := r.Context()
+	select {
+	// Change ctx time
+	case <-time.After(time.Second * 10):
+		c, err := GetCotacao(API_URL)
+		if err != nil {
+			w.WriteHeader(http.StatusInternalServerError)
+			return
+		}
 
-	d, err := strconv.ParseFloat(c.USDBRL.Bid, 64)
-	if err != nil {
-		panic(err)
-	}
+		d, err := strconv.ParseFloat(c.USDBRL.Bid, 64)
+		if err != nil {
+			panic(err)
+		}
 
-	w.Header().Set("Content-Type", "application/json")
-	w.WriteHeader(http.StatusOK)
-	json.NewEncoder(w).Encode(d)
+		w.Header().Set("Content-Type", "application/json")
+		w.WriteHeader(http.StatusOK)
+		json.NewEncoder(w).Encode(d)
+
+	case <-ctx.Done():
+		w.WriteHeader(http.StatusRequestTimeout)
+	}
 }
 
 func GetCotacao(url string) (*Cotacao, error) {
-	ctx := context.Background()
-	// Change context time
-	ctx, cancel := context.WithTimeout(ctx, time.Second*10)
-	defer cancel()
-
-	req, err := http.NewRequestWithContext(ctx, http.MethodGet, url, nil)
+	req, err := http.NewRequest(http.MethodGet, url, nil)
 	if err != nil {
 		return nil, err
 	}
@@ -116,15 +119,19 @@ func GetCotacao(url string) (*Cotacao, error) {
 	return &c, nil
 }
 
-// TODO: add context timeout
+// TODO: change ctx time
 func SaveCotacao(db *sql.DB, cotacao *Cotacao) error {
-	stmt, err := db.Prepare("insert into cotacao(code, code_in, name, high, low, var_bid, pct_change, bid, ask, timestamp, create_date) values(?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?);")
+	ctx := context.Background()
+	ctx, cancel := context.WithTimeout(ctx, time.Second*10)
+	defer cancel()
+
+	stmt, err := db.PrepareContext(ctx, "insert into cotacao(code, code_in, name, high, low, var_bid, pct_change, bid, ask, timestamp, create_date) values(?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?);")
 	if err != nil {
 		return err
 	}
 	defer stmt.Close()
 
-	_, err = stmt.Exec(cotacao.USDBRL.Code, cotacao.USDBRL.Codein, cotacao.USDBRL.Name, cotacao.USDBRL.High, cotacao.USDBRL.Low, cotacao.USDBRL.VarBid, cotacao.USDBRL.PctChange, cotacao.USDBRL.Bid, cotacao.USDBRL.Ask, cotacao.USDBRL.Timestamp, cotacao.USDBRL.CreateDate)
+	_, err = stmt.ExecContext(ctx, cotacao.USDBRL.Code, cotacao.USDBRL.Codein, cotacao.USDBRL.Name, cotacao.USDBRL.High, cotacao.USDBRL.Low, cotacao.USDBRL.VarBid, cotacao.USDBRL.PctChange, cotacao.USDBRL.Bid, cotacao.USDBRL.Ask, cotacao.USDBRL.Timestamp, cotacao.USDBRL.CreateDate)
 	if err != nil {
 		return err
 	}

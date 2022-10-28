@@ -20,7 +20,7 @@ func main() {
 func GetCotacaoDolar(url string) []byte {
 	ctx := context.Background()
 	// Change context time
-	ctx, cancel := context.WithTimeout(ctx, time.Second*10)
+	ctx, cancel := context.WithTimeout(ctx, time.Second*20)
 	defer cancel()
 
 	req, err := http.NewRequestWithContext(ctx, http.MethodGet, url, nil)
