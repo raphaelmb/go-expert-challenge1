@@ -1,0 +1,15 @@
+version: "3"
+
+services:
+  client:
+    build: ./client
+    container_name: go-expert-challenge-client
+    volumes:
+      - ./client:/app
+  server:
+    build: ./server
+    container_name: go-expert-challenge-server
+    ports:
+      - "8080:8080"
+    volumes:
+      - ./server:/app

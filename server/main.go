@@ -5,6 +5,7 @@ import (
 	"database/sql"
 	"encoding/json"
 	"io"
+	"log"
 	"net/http"
 	"os"
 	"strconv"
@@ -65,6 +66,8 @@ func prepareAndConnectDB() {
 
 func CotacaoHandler(w http.ResponseWriter, r *http.Request) {
 	ctx := r.Context()
+	log.Println("Request started")
+	defer log.Println("Request completed")
 	select {
 	// Change ctx time
 	case <-time.After(time.Second * 10):
@@ -82,9 +85,11 @@ func CotacaoHandler(w http.ResponseWriter, r *http.Request) {
 		w.Header().Set("Content-Type", "application/json")
 		w.WriteHeader(http.StatusOK)
 		json.NewEncoder(w).Encode(d)
+		log.Println("Request successfully processed")
 
 	case <-ctx.Done():
 		w.WriteHeader(http.StatusRequestTimeout)
+		log.Println("Request cancelled by client")
 	}
 }
 
