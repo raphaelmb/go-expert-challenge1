@@ -1,3 +1,13 @@
+## Instruções
+
+Na raíz do projeto, execute `docker compose up -d` para subir os containers. Inicie o server com o comando `docker compose exec server bash` e dentro do container `go run main.go`. Para rodar o client execute `docker compose exec client bash` e dentro do container `go run main.go`.
+
+No client será criado um arquivo chamado "cotacao.txt" com o resultado da requisição.
+
+No server é possível visualizar os dados salvos executando `sqlite3 db.sqlite` dentro do container e executando `SELECT * FROM cotacao;`
+
+---
+
 Neste desafio vamos aplicar o que aprendemos sobre webserver http, contextos,
 banco de dados e manipulação de arquivos com Go.
 

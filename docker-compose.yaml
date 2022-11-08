@@ -6,6 +6,8 @@ services:
     container_name: go-expert-challenge-client
     volumes:
       - ./client:/app
+    networks:
+      - go
   server:
     build: ./server
     container_name: go-expert-challenge-server
@@ -13,3 +15,9 @@ services:
       - "8080:8080"
     volumes:
       - ./server:/app
+    networks:
+      - go
+
+networks:
+  go:
+    driver: bridge

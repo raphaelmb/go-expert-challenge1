@@ -69,8 +69,7 @@ func CotacaoHandler(w http.ResponseWriter, r *http.Request) {
 	log.Println("Request started")
 	defer log.Println("Request completed")
 	select {
-	// Change ctx time
-	case <-time.After(time.Second * 10):
+	case <-time.After(time.Millisecond * 200):
 		c, err := GetCotacao(API_URL)
 		if err != nil {
 			w.WriteHeader(http.StatusInternalServerError)
@@ -124,10 +123,9 @@ func GetCotacao(url string) (*Cotacao, error) {
 	return &c, nil
 }
 
-// TODO: change ctx time
 func SaveCotacao(db *sql.DB, cotacao *Cotacao) error {
 	ctx := context.Background()
-	ctx, cancel := context.WithTimeout(ctx, time.Second*10)
+	ctx, cancel := context.WithTimeout(ctx, time.Millisecond*10)
 	defer cancel()
 
 	stmt, err := db.PrepareContext(ctx, "insert into cotacao(code, code_in, name, high, low, var_bid, pct_change, bid, ask, timestamp, create_date) values(?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?);")
