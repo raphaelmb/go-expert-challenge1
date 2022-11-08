@@ -67,11 +67,11 @@ func prepareAndConnectDB() {
 func CotacaoHandler(w http.ResponseWriter, r *http.Request) {
 	ctx := r.Context()
 	log.Println("Request started")
-	defer log.Println("Request completed")
 	select {
 	case <-time.After(time.Millisecond * 200):
 		c, err := GetCotacao(API_URL)
 		if err != nil {
+			log.Println("Error:", err)
 			w.WriteHeader(http.StatusInternalServerError)
 			return
 		}
