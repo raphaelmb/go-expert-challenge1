@@ -10,12 +10,10 @@ import (
 )
 
 const (
-	// SERVER_URL = "http://localhost:8080/cotacao"
 	SERVER_URL = "http://server:8080/cotacao"
 )
 
 func main() {
-	// TODO: better error handling
 	c, err := GetCotacaoDolar(SERVER_URL)
 	if err != nil {
 		log.Println("Error:", err)
